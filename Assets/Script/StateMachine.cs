@@ -2,28 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-//using System;
+
 
 public class StateMachine : MonoBehaviour
 {
     [SerializeField] private GameObject firstScene;
     [SerializeField] private GameObject finalScene;
+    public AudioSource musicWin;
+    public AudioSource musicFail;
+
     public Text counter;
+    public Text finalText;
     public List<GameObject> ListScenes = new List<GameObject>();
     List<GameObject> ListQuestions = new List<GameObject>();
     private static System.Random rng = new System.Random();
 
     private GameObject currentScene;
-    public static int countAnswer = 0;
+    public static int countAnswer;
+    
 
     private void Start()
     {
+        // Запускает начальный экран
         firstScene.SetActive(true);
         currentScene = firstScene;
-        Debug.Log("start game");
-        Debug.Log(ListScenes.Count);
-        Debug.Log(ListQuestions.Count);
-        Debug.Log(countAnswer);
         counter.text = countAnswer.ToString();
     }
 
@@ -31,31 +33,28 @@ public class StateMachine : MonoBehaviour
     public void MadeListQuestions()
         /// <summary>
         /// Создаёт список вопросов из списка сцен перетусовывая порядок
-        /// до 10 вопросов или пока длина списка вопросов
-        /// не сравняется с длиной списка сцен
+        /// до 10 вопросов, обнуляет счётчик и эпилог
         /// </summary>
-        
     {
         Debug.Log("make list");
-        //while (ListQuestions.Count < 11 && ListQuestions.Count <= ListScenes.Count)
-        //{
-        //    int RandomIndex = rng.Next(ListScenes.Count - 1);
-        //    if (!ListQuestions.Contains(ListScenes[RandomIndex]))
-        //    {
-        //        ListQuestions.Add(ListScenes[RandomIndex]);
-        //    }
-        //}
-        while (ListQuestions.Count < 11)
+        countAnswer = 0;
+        finalText.text = "Что? 0? Не можешь даже угадать???";
+        while (ListQuestions.Count < 10)
         {
-            int RandomIndex = rng.Next(ListScenes.Count - 1);
-            ListQuestions.Add(ListScenes[RandomIndex]);
+            int RandomIndex = rng.Next(ListScenes.Count);
+            if (!ListQuestions.Contains(ListScenes[RandomIndex]))
+            {
+                ListQuestions.Add(ListScenes[RandomIndex]);
+            }
         }
+        Debug.Log(ListQuestions.Count);
     }
 
     public void ChangeScene()
     {
         /// <summary>
-        /// 
+        /// Меняет сцену, удаляя предыдущую из списка
+        /// если список пуст запускат финальную сцену
         /// </summary>
         Debug.Log("нажата смена сцены");
         Debug.Log(countAnswer);
@@ -63,7 +62,7 @@ public class StateMachine : MonoBehaviour
         {
             if (ListQuestions.Count > 0)
             {
-                firstScene.SetActive(false);
+                currentScene.SetActive(false);
                 ListQuestions[0].SetActive(true);
                 currentScene = ListQuestions[0];
                 ListQuestions.RemoveAt(0);
@@ -73,16 +72,37 @@ public class StateMachine : MonoBehaviour
                 finalScene.SetActive(true);
                 currentScene = finalScene;
             }
-
-        }
-
-        
+        } 
     }
 
     public void IncreamentCounter()
+        ///<summary>
+        /// Увеличивает счётчик правильных ответов и переопределяет эпилог
+        /// </summary>
     {
         countAnswer += 1;
         Debug.Log($"Число ответов теперь {countAnswer}");
         counter.text = countAnswer.ToString();
+        musicWin.Play();
+        if ((countAnswer >= 1) && (countAnswer <= 5))
+        {
+            finalText.text = "Слишком!!!\r\nСлишком плохо, чтоб бросать мне вызов!\r\nЖалкий Глупец!!!!!";
+        }
+        else if ((countAnswer >= 6) && (countAnswer <= 9))
+        {
+            finalText.text = "Неплохо!\r\nНо не достаточно, чтоб бросать мне вызов!!!";
+        }
+        else
+        {
+            finalText.text = "Да как ты смеешь?!\r\nКем ты себя считаешь?!\r\nНичего в следующий раз удача не будет к тебе так благосклонна!!!!";
+        }
+    }
+
+    public void MainMenu()
+        // Запускает главное меню
+    {
+        currentScene.SetActive(false);
+        firstScene.SetActive(true);
+        currentScene = firstScene;
     }
 }
